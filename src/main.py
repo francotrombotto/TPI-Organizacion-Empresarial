@@ -236,6 +236,7 @@ def main():
 
             print("Será atendido por Mesa de Ayuda.")
             print("Estado:", estado)
+            
 
 
 if __name__ == "__main__":
