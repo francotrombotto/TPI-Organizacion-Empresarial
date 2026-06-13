@@ -29,6 +29,15 @@ manual/
 pruebas/
 src/
 
+## Persistencia de Datos
+
+La información del sistema se almacena en una base de datos simulada desarrollada en Microsoft Excel.
+
+Hojas utilizadas:
+
+- Usuarios_Empleados
+- Base_Conocimientos_FAQ
+- Registro_Tickets
 ## Ejecución
 
 ```bash
