@@ -1,7 +1,4 @@
-import openpyxl
-from datetime import datetime
-
-ARCHIVO_EXCEL = "../datos/Base_Datos_Soporte.xlsx"
+import csv
 
 ESTADO_INICIO = "INICIO"
 ESTADO_VALIDANDO_USUARIO = "VALIDANDO_USUARIO"
@@ -13,49 +10,42 @@ ESTADO_DERIVADO_N2 = "DERIVADO_N2"
 ESTADO_CERRADO = "CERRADO"
 
 
-def abrir_bd():
-    return openpyxl.load_workbook(ARCHIVO_EXCEL)
+def cargar_usuarios():
+    usuarios = {}
+
+    with open("datos/usuarios.csv", encoding="utf-8") as archivo:
+        lector = csv.DictReader(archivo)
+
+        for fila in lector:
+            usuarios[fila["legajo"]] = fila
+
+    return usuarios
 
 
-def buscar_usuario(legajo):
+def cargar_faq():
+    faq = []
 
-    wb = abrir_bd()
-    hoja = wb["Usuarios_Empleados"]
+    with open("datos/faq.csv", encoding="utf-8") as archivo:
+        lector = csv.DictReader(archivo)
 
-    for fila in hoja.iter_rows(min_row=2, values_only=True):
+        for fila in lector:
+            faq.append(fila)
 
-        if str(fila[0]) == str(legajo):
-
-            return {
-                "legajo": fila[0],
-                "nombre": fila[1],
-                "sector": fila[2],
-                "email": fila[3]
-            }
-
-    return None
+    return faq
 
 
-def buscar_solucion(problema):
-
-    wb = abrir_bd()
-    hoja = wb["Base_Conocimientos_FAQ"]
+def buscar_solucion(problema, faq):
 
     problema = problema.lower()
 
-    for fila in hoja.iter_rows(min_row=2, values_only=True):
+    for item in faq:
 
-        palabras_clave = str(fila[2]).lower()
+        palabras = item["palabras_clave"].lower().split(",")
 
-        lista_palabras = palabras_clave.split(",")
+        for palabra in palabras:
 
-        for palabra in lista_palabras:
-
-            palabra = palabra.strip()
-
-            if palabra in problema:
-
-                return fila[3]
+            if palabra.strip() in problema:
+                return item["solucion"]
 
     return None
 
@@ -64,159 +54,164 @@ def calcular_prioridad(problema):
 
     problema = problema.lower()
 
-    alta = [
+    palabras_alta = [
         "servidor",
         "base de datos",
-        "caido",
-        "caído"
+        "sistema caido",
+        "sistema caído"
     ]
 
-    media = [
+    palabras_media = [
         "internet",
         "vpn",
         "red"
     ]
 
-    for palabra in alta:
-
+    for palabra in palabras_alta:
         if palabra in problema:
             return "ALTA"
 
-    for palabra in media:
-
+    for palabra in palabras_media:
         if palabra in problema:
             return "MEDIA"
 
     return "BAJA"
 
 
-def generar_ticket(legajo, problema, prioridad):
+def generar_ticket(usuario, problema, prioridad):
 
-    wb = abrir_bd()
-    hoja = wb["Registro_Tickets"]
+    ruta = "datos/tickets.csv"
 
     ultimo_id = 0
 
-    for fila in hoja.iter_rows(min_row=2, values_only=True):
+    with open(ruta, encoding="utf-8") as archivo:
 
-        if fila[0]:
+        lector = csv.DictReader(archivo)
+
+        for fila in lector:
 
             try:
-                ultimo_id = max(
-                    ultimo_id,
-                    int(fila[0])
-                )
+                ultimo_id = int(fila["id_ticket"])
             except:
                 pass
 
     nuevo_id = ultimo_id + 1
 
-    hoja.append([
-        nuevo_id,
-        legajo,
-        datetime.now().strftime("%d/%m/%Y %H:%M"),
-        problema,
-        prioridad,
-        "ABIERTO",
-        ""
-    ])
+    with open(ruta, "a", newline="", encoding="utf-8") as archivo:
 
-    wb.save(ARCHIVO_EXCEL)
+        escritor = csv.writer(archivo)
+
+        escritor.writerow(
+            [
+                nuevo_id,
+                usuario,
+                problema,
+                prioridad,
+                "ABIERTO"
+            ]
+        )
 
     return nuevo_id
 
 
 def main():
 
-    print("\n==============================")
-    print("MESA DE AYUDA IT")
-    print("==============================")
+    usuarios = cargar_usuarios()
+    faq = cargar_faq()
 
-    estado = ESTADO_VALIDANDO_USUARIO
+    print("\n===================================")
+    print(" MESA DE AYUDA IT ")
+    print("===================================\n")
 
-    legajo = input("\nIngrese su legajo: ")
+    legajo = input("Ingrese su legajo: ")
 
     if not legajo.isdigit():
 
         print("Error: debe ingresar un número.")
         return
 
-    usuario = buscar_usuario(legajo)
+    if legajo not in usuarios:
 
-    if usuario is None:
-
-        print("Legajo inexistente.")
+        print("Error: legajo inexistente.")
         return
 
-    print(f"\nBienvenido {usuario['nombre']}")
+    usuario = usuarios[legajo]["nombre"]
 
-    estado = ESTADO_ESPERANDO_PROBLEMA
+    print(f"\nBienvenido {usuario}")
 
-    problema = input(
-        "\nDescriba su problema: "
-    ).strip()
+    problema = input("\nDescriba su problema: ").strip()
 
     if problema == "":
-
-        print("Debe ingresar un problema.")
+        print("Debe describir un problema.")
         return
 
-    estado = ESTADO_BUSCANDO_FAQ
-
-    solucion = buscar_solucion(problema)
+    solucion = buscar_solucion(problema, faq)
 
     if solucion:
 
-        print("\nSolución encontrada:")
+        print("\nSe encontró una solución:")
         print(solucion)
 
-        estado = ESTADO_ESPERANDO_CONFIRMACION
-
         respuesta = input(
-            "\n¿Se resolvió el problema? (SI/NO): "
+            "\n¿El problema fue resuelto? (SI/NO): "
         ).upper()
 
         while respuesta not in ["SI", "NO"]:
 
             respuesta = input(
-                "Ingrese SI o NO: "
+                "Respuesta inválida. Ingrese SI o NO: "
             ).upper()
 
         if respuesta == "SI":
 
-            estado = ESTADO_CERRADO
-
             print("\nIncidente resuelto.")
-            print("Estado:", estado)
+            print("Estado:", ESTADO_CERRADO)
 
-            return
+        else:
 
-    estado = ESTADO_GENERANDO_TICKET
+            prioridad = calcular_prioridad(problema)
 
-    prioridad = calcular_prioridad(problema)
+            ticket = generar_ticket(
+                usuario,
+                problema,
+                prioridad
+            )
 
-    ticket = generar_ticket(
-        legajo,
-        problema,
-        prioridad
-    )
+            print(f"\nTicket generado N° {ticket}")
+            print("Prioridad:", prioridad)
 
-    print(f"\nTicket generado N° {ticket}")
-    print("Prioridad:", prioridad)
+            if prioridad == "ALTA":
 
-    if prioridad == "ALTA":
+                print("Derivado a Soporte Nivel 2.")
+                print("Estado:", ESTADO_DERIVADO_N2)
 
-        estado = ESTADO_DERIVADO_N2
+            else:
 
-        print("Derivado a Soporte Nivel 2.")
-        print("Estado:", estado)
+                print("Será atendido por Mesa de Ayuda.")
+                print("Estado:", ESTADO_CERRADO)
 
     else:
 
-        estado = ESTADO_CERRADO
+        prioridad = calcular_prioridad(problema)
 
-        print("Será atendido por Mesa de Ayuda.")
-        print("Estado:", estado)
+        ticket = generar_ticket(
+            usuario,
+            problema,
+            prioridad
+        )
+
+        print(f"\nTicket generado N° {ticket}")
+        print("Prioridad:", prioridad)
+
+        if prioridad == "ALTA":
+
+            print("Derivado a Soporte Nivel 2.")
+            print("Estado:", ESTADO_DERIVADO_N2)
+
+        else:
+
+            print("Será atendido por Mesa de Ayuda.")
+            print("Estado:", ESTADO_CERRADO)
 
 
 if __name__ == "__main__":

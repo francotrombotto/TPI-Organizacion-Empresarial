@@ -1,5 +1,7 @@
-legajo,nombre,sector
-1001,Juan Perez,Ventas
-1002,Ana Gomez,RRHH
-1003,Carlos Ruiz,Sistemas
-1004,Laura Fernandez,Administracion
+legajo,nombre,sector,email
+1001,Ana Gomez,Ventas,ana.gomez@empresa.com
+1002,Carlos Perez,Finanzas,carlos.perez@empresa.com
+1003,Lucia Fernandez,RRHH,lucia.fernandez@empresa.com
+1004,Martin Lopez,Sistemas,martin.lopez@empresa.com
+1005,Sofia Odello,Administracion,sofia.odello@empresa.com
+1006,Franco Trombotto,IT,franco.trombotto@empresa.com

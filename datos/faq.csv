@@ -1,5 +1,11 @@
-id_faq,problema,solucion
-1,contraseña,Restablecer contraseña desde el portal interno
-2,internet,Reiniciar router y verificar conexion
-3,impresora,Reiniciar impresora y verificar conexion USB
-4,outlook,Cerrar y abrir Outlook nuevamente
+id_faq,categoria,palabras_clave,solucion
+1,Credenciales,"contraseña,password,clave,bloqueada","Restablecer la contraseña desde el portal de autogestion."
+2,Internet,"internet,red,sin conexion","Verificar cable de red y reiniciar el router."
+3,Impresoras,"impresora,no imprime,cartucho","Reiniciar impresora y verificar conexion USB."
+4,Correo,"outlook,correo,email","Cerrar y volver a abrir Outlook."
+5,VPN,"vpn,acceso remoto","Reconectar VPN y validar credenciales."
+6,Excel,"excel,archivo excel","Verificar que el archivo no este bloqueado."
+7,Teams,"teams,reunion,videollamada","Cerrar Teams y volver a iniciar sesión."
+8,Sistema Gestión,"erp,sistema gestion","Verificar conectividad con el servidor."
+9,Windows,"windows,inicio lento","Reiniciar el equipo y verificar espacio disponible."
+10,PDF,"pdf,acrobat","Actualizar Adobe Acrobat Reader."
