@@ -1,1 +1,3 @@
 id_ticket,legajo,usuario,problema,prioridad,estado
+1,Franco Trombotto,servidor de base de datos caido,ALTA,ABIERTO
+2,Lucia Fernandez,proyector roto,BAJA,ABIERTO
